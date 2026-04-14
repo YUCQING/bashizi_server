@@ -17,9 +17,14 @@ const app = socketIO(server, {
     pingInterval: 50000   // 每50秒发送一次ping
 });
 
+// ==============================================
+// 🔥 唯一修改点：支持 Fly.io 动态端口（必须这样写）
+// ==============================================
+const PORT = process.env.PORT || 3000;
+
 // 启动服务器
-server.listen(3000, () => {
-    console.log('✅ 拖拉机服务器已启动，端口: 3000');
+server.listen(PORT, () => {
+    console.log('✅ 拖拉机服务器已启动，端口: ' + PORT);
     console.log('✅ SQLite数据库已连接');
 });
 
@@ -43,13 +48,11 @@ app.on("connection",function(socket){
       switch(req.cmd){
          case "wxlogin":
             var uniqueId = data.uniqueID
-            //console.log("login uniqueId:"+uniqueId)
             mydb.getPlayerInfoByUniqueID(uniqueId,function(err,result){
                if (err){
                   console.log("getPlayerInfoByUniqueID err"+err)
                }else{
                   if(result.length===0){
-                     //没有用户数据，创建一个
                     
                     var userinfo = {
                         uniqueID:data.uniqueID,
@@ -59,9 +62,7 @@ app.on("connection",function(socket){
                         avatarUrl:data.avatarUrl,
                     }
                     mydb.createPlayer(userinfo)
-                    //data = [{"unique_id":"1328014","account_id":"2117836",
-                    //"nick_name":"tiny543","gold_count":1000,
-                    //"avatar_url":"http://xxx"}]
+
                     gamectr.create_player(
                        {
                         unique_id:data.uniqueID,
@@ -74,7 +75,6 @@ app.on("connection",function(socket){
                        req.callindex
                     )
                   }else{
-                     //取到数据
                      console.log('data = ' + JSON.stringify(result));
                      gamectr.create_player(result[0],socket,req.callindex)
                   }
@@ -87,6 +87,3 @@ app.on("connection",function(socket){
       }
    })
 })
-
-
-
